@@ -7,18 +7,20 @@ import shutil
 import boto3
 import dill
 import moto
+import mock
 import pip
 
-from deployment import Lambda, DeploymentPackage
+from easy_lambda.deployment import Lambda, DeploymentPackage
 
 
 @moto.mock_lambda
+@moto.mock_s3
 class Test(unittest.TestCase):
     def setUp(self):
         super(Test, self).setUp()
         self.client = boto3.client('lambda', region_name='us-west-2')
-
-    def test_create(self):
+    @mock.patch('easy_lambda.deployment.DeploymentPackage.copy_env')
+    def test_create(self, mock):
 
         value = 1
         function_name = 'test_function'
@@ -29,11 +31,11 @@ class Test(unittest.TestCase):
 
         package = DeploymentPackage(foo)
 
-        zfp = zipfile.ZipFile(StringIO(package.zip_bytes(foo.serialize())), "r")
+        zfp = zipfile.ZipFile(StringIO(package.zip_bytes(foo.dumped_code)), "r")
         func = dill.load(zfp.open('.lambda.dump'))
         self.assertEqual(func(), value)
 
-        resp_create = foo.create()
+        resp_create = foo.get()
         self.assertEqual(resp_create['FunctionName'], function_name)
 
         resp_get = foo.get()

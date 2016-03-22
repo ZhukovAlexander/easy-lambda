@@ -7,6 +7,8 @@ import time
 import shutil
 
 import dill
+dill.settings['recurse'] = True
+
 import boto3
 
 
@@ -41,7 +43,10 @@ class DeploymentPackage(object):
         for root, dirs, files in os.walk(site_packages):
             for filename in filter(take_pyc(root), files):
 
-                destination.write(os.path.join(root, filename), os.path.join(root.replace(venv, ''), filename))
+                destination.write(
+                    os.path.join(root, filename),
+                    os.path.join(os.path.relpath(root, site_packages), filename)
+                )
 
     def zip_bytes(self, lambda_code):
         mf = StringIO()
@@ -50,23 +55,14 @@ class DeploymentPackage(object):
             for filename in os.listdir(path):
                 archive.write(os.path.join(path, filename), filename)
             # add serialized lambda function
-            archive.writestr('.lambda.dump', lambda_code)
+            # make sure to add correct permissions
+            # <http://stackoverflow.com/a/434689/2183102>
+            info = zipfile.ZipInfo('.lambda.dump')
+            info.external_attr = 0777 << 16L # give full access to included file
+            archive.writestr(info, lambda_code)
+            # package your environment
+            self.copy_env(archive)
         return mf.getvalue()
-
-
-class LambdaProxy(object):
-
-    def __init__(self, lambda_object):
-        self.lambda_object = lambda_object
-
-    def create(self):
-        return self.lambda_object.create()
-
-    def get(self):
-        return self.lambda_object.get()
-
-    def __call__(self, event, context):
-        return self.lambda_object.invoke(event, context)
 
 
 class Lambda(object):
@@ -81,8 +77,12 @@ class Lambda(object):
         self.description = description
         self.vps_config = vps_config or {}
 
+        self.dumped_code = None
+
     def __call__(self, functor):
         self.functor = functor
+        self.dumped_code = dill.dumps(functor)
+
         return self
 
     def serialize(self):
@@ -94,34 +94,38 @@ class Lambda(object):
     def create(self):
         package = DeploymentPackage(self)
         response = self.client.create_function(
-                FunctionName=self.name or self.functor.__name__,
+                FunctionName=self.name,
                 Runtime='python2.7',
                 Role=self.role,
                 Handler='container.lambda_handler',
                 Code={
-                    'ZipFile': package.zip_bytes(self.serialize()),
-                    'S3Bucket': self.bucket,
-                    'S3Key': self.key,
-                    'S3ObjectVersion': 'string'
+                    'ZipFile': package.zip_bytes(self.dumped_code),
+                    #'S3Bucket': self.bucket,
+                    #'S3Key': self.key,
+#                    'S3ObjectVersion': 'string'
                 },
                 Description=self.description,
                 Timeout=123,
                 MemorySize=128,
                 Publish=True,
-                VpcConfig={
-                    'SubnetIds': [
-                        'string',
-                    ],
-                    'SecurityGroupIds': [
-                        'string',
-                    ]
-                }
+
         )
 
         return response
 
     def get(self):
         return self.client.get_function(FunctionName=self.name)
+
+    def update(self):
+        package = DeploymentPackage(self)
+        return self.client.update_function_code(
+            FunctionName=self.name,
+            ZipFile=package.zip_bytes(self.dumped_code),
+            #S3Bucket='string',
+            #S3Key='string',
+            #S3ObjectVersion='string',
+            #Publish=True|False
+        )
 
     def invoke(self, event, context, inv_type='RequestResponse', log_type='None', version=None):
         params = dict(
