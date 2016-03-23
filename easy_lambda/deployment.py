@@ -1,3 +1,4 @@
+
 import json
 import os
 import tempfile
@@ -13,8 +14,9 @@ import boto3
 
 
 class DeploymentPackage(object):
-    def __init__(self, lambda_function):
+    def __init__(self, lambda_function, path=None):
         self.lambda_function = lambda_function
+        self.env_cache = path or '/tmp/easy_lambda/{}.cache'.format(lambda_function.name)
 
     def copy_env(self, destination, venv_path=None):
         """
@@ -48,20 +50,28 @@ class DeploymentPackage(object):
                     os.path.join(os.path.relpath(root, site_packages), filename)
                 )
 
+    def get_zipped_env(self):
+        if not os.path.isfile(self.env_cache):
+            with zipfile.ZipFile(self.env_cache, 'w', zipfile.ZIP_DEFLATED) as archive:
+                path = os.path.join(os.path.dirname(__file__), 'data')
+                for filename in os.listdir(path):
+                    archive.write(os.path.join(path, filename), filename)
+
+                # package your environment
+                self.copy_env(archive)
+
+        zf = zipfile.ZipFile(self.env_cache, 'a', zipfile.ZIP_DEFLATED)
+        return StringIO(zf), zf
+
     def zip_bytes(self, lambda_code):
-        mf = StringIO()
-        with zipfile.ZipFile(mf, 'w', zipfile.ZIP_DEFLATED) as archive:
-            path = os.path.join(os.path.dirname(__file__), 'data')
-            for filename in os.listdir(path):
-                archive.write(os.path.join(path, filename), filename)
-            # add serialized lambda function
-            # make sure to add correct permissions
-            # <http://stackoverflow.com/a/434689/2183102>
-            info = zipfile.ZipInfo('.lambda.dump')
-            info.external_attr = 0777 << 16L # give full access to included file
-            archive.writestr(info, lambda_code)
-            # package your environment
-            self.copy_env(archive)
+        mf, archive = self.get_zipped_env()
+
+        # add serialized lambda function
+        # make sure to add correct permissions
+        # <http://stackoverflow.com/a/434689/2183102>
+        info = zipfile.ZipInfo('.lambda.dump')
+        info.external_attr = 0777 << 16L # give full access to included file
+        archive.writestr(info, lambda_code)
         return mf.getvalue()
 
 
