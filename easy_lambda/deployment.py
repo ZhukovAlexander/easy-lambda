@@ -1,4 +1,3 @@
-
 import json
 import os
 import tempfile
@@ -8,6 +7,7 @@ import time
 import shutil
 
 import dill
+
 dill.settings['recurse'] = True
 
 import boto3
@@ -30,24 +30,21 @@ class DeploymentPackage(object):
 
         venv = venv_path or os.environ['VIRTUAL_ENV']
 
-        package_path = tempfile.mkdtemp()
-        package_path = os.path.join(tempfile.gettempdir(), str(int(time.time() + 1)))
         site_packages = os.path.join(venv, 'lib', 'python2.7', 'site-packages')
 
         def take_pyc(root_dir):
-                # If there is a .pyc file in this package,
-                # we can skip the python source code as we'll just
-                # use the compiled bytecode anyway.
-                return lambda f_name: not (
-                    f_name.endswith('.py') and os.path.isfile(os.path.join(root_dir, f_name) + 'c')
-                )
+            # If there is a .pyc file in this package,
+            # we can skip the python source code as we'll just
+            # use the compiled bytecode anyway.
+            return lambda f_name: not (
+                f_name.endswith('.py') and os.path.isfile(os.path.join(root_dir, f_name) + 'c')
+            )
 
         for root, dirs, files in os.walk(site_packages):
             for filename in filter(take_pyc(root), files):
-
                 destination.write(
-                    os.path.join(root, filename),
-                    os.path.join(os.path.relpath(root, site_packages), filename)
+                        os.path.join(root, filename),
+                        os.path.join(os.path.relpath(root, site_packages), filename)
                 )
 
     def get_zipped_env(self):
@@ -60,24 +57,23 @@ class DeploymentPackage(object):
                 # package your environment
                 self.copy_env(archive)
 
-        zf = zipfile.ZipFile(self.env_cache, 'a', zipfile.ZIP_DEFLATED)
-        return StringIO(zf), zf
+        return zipfile.ZipFile(self.env_cache, 'a', zipfile.ZIP_DEFLATED)
 
     def zip_bytes(self, lambda_code):
-        mf, archive = self.get_zipped_env()
+        archive = self.get_zipped_env()
 
         # add serialized lambda function
         # make sure to add correct permissions
         # <http://stackoverflow.com/a/434689/2183102>
         info = zipfile.ZipInfo('.lambda.dump')
-        info.external_attr = 0777 << 16L # give full access to included file
+        info.external_attr = 0777 << 16L  # give full access to included file
         archive.writestr(info, lambda_code)
-        return mf.getvalue()
+        archive.close()
+        return open(self.env_cache).read()
 
 
 class Lambda(object):
     def __init__(self, name='', role='', bucket='', key='', client=None, description='', vps_config=None):
-
         self.client = client or boto3.client('lambda', region_name='us-west-2')
 
         self.name = name
@@ -110,9 +106,9 @@ class Lambda(object):
                 Handler='container.lambda_handler',
                 Code={
                     'ZipFile': package.zip_bytes(self.dumped_code),
-                    #'S3Bucket': self.bucket,
-                    #'S3Key': self.key,
-#                    'S3ObjectVersion': 'string'
+                    # 'S3Bucket': self.bucket,
+                    # 'S3Key': self.key,
+                    # 'S3ObjectVersion': 'string'
                 },
                 Description=self.description,
                 Timeout=123,
@@ -129,21 +125,21 @@ class Lambda(object):
     def update(self):
         package = DeploymentPackage(self)
         return self.client.update_function_code(
-            FunctionName=self.name,
-            ZipFile=package.zip_bytes(self.dumped_code),
-            #S3Bucket='string',
-            #S3Key='string',
-            #S3ObjectVersion='string',
-            #Publish=True|False
+                FunctionName=self.name,
+                ZipFile=package.zip_bytes(self.dumped_code),
+                # S3Bucket='string',
+                # S3Key='string',
+                # S3ObjectVersion='string',
+                # Publish=True|False
         )
 
     def invoke(self, event, context, inv_type='RequestResponse', log_type='None', version=None):
         params = dict(
-            FunctionName=self.name,
-            InvocationType=inv_type,
-            LogType=log_type,
-            # ClientContext='string',
-            Payload=json.dumps(event),
+                FunctionName=self.name,
+                InvocationType=inv_type,
+                LogType=log_type,
+                # ClientContext='string',
+                Payload=json.dumps(event),
         )
         if version:
             params['Qualifier'] = version
