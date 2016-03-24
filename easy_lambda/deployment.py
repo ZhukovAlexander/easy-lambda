@@ -1,10 +1,9 @@
 import json
 import os
 import tempfile
+import warnings
 import zipfile
-from StringIO import StringIO
-import time
-import shutil
+import functools
 
 import dill
 
@@ -72,6 +71,66 @@ class DeploymentPackage(object):
         return open(self.env_cache).read()
 
 
+class LambdaProxy(object):
+
+    def __init__(self, lambda_instance, client):
+        self.client = client
+        self.lambda_instance = lambda_instance
+
+    def __call__(self, *args, **kwargs):
+        kwargs.update({'args': args})
+        return json.loads(self.invoke(kwargs, None)['Payload'].read())
+
+    def create(self):
+        package = DeploymentPackage(self.lambda_instance)
+        response = self.client.create_function(
+                FunctionName=self.lambda_instance.name,
+                Runtime='python2.7',
+                Role=self.lambda_instance.role,
+                Handler='container.lambda_handler',
+                Code={
+                    'ZipFile': package.zip_bytes(self.lambda_instance.dumped_code),
+                    # 'S3Bucket': self.bucket,
+                    # 'S3Key': self.key,
+                    # 'S3ObjectVersion': 'string'
+                },
+                Description=self.lambda_instance.description,
+                Timeout=123,
+                MemorySize=128,
+                Publish=True,
+
+        )
+
+        return response
+
+    def get(self):
+        return self.client.get_function(FunctionName=self.lambda_instance.name)
+
+    def update(self):
+        package = DeploymentPackage(self.lambda_instance)
+        return self.client.update_function_code(
+                FunctionName=self.lambda_instance.name,
+                ZipFile=package.zip_bytes(self.lambda_instance.dumped_code),
+                # S3Bucket='string',
+                # S3Key='string',
+                # S3ObjectVersion='string',
+                # Publish=True|False
+        )
+
+    def invoke(self, event, context, inv_type='RequestResponse', log_type='None', version=None):
+        params = dict(
+                FunctionName=self.lambda_instance.name,
+                InvocationType=inv_type,
+                LogType=log_type,
+                # ClientContext='string',
+                Payload=json.dumps(event),
+        )
+        if version:
+            params['Qualifier'] = version
+
+        return self.client.invoke(**params)
+
+
 class Lambda(object):
     def __init__(self, name='', role='', bucket='', key='', client=None, description='', vps_config=None):
         self.client = client or boto3.client('lambda', region_name='us-west-2')
@@ -89,59 +148,10 @@ class Lambda(object):
         self.functor = functor
         self.dumped_code = dill.dumps(functor)
 
-        return self
+        return functools.wraps(functor)(LambdaProxy(self, self.client))
 
     def serialize(self):
         return dill.dumps(self.functor)
 
     def serialize_to(self, f):
         return dill.dump(self.functor, f)
-
-    def create(self):
-        package = DeploymentPackage(self)
-        response = self.client.create_function(
-                FunctionName=self.name,
-                Runtime='python2.7',
-                Role=self.role,
-                Handler='container.lambda_handler',
-                Code={
-                    'ZipFile': package.zip_bytes(self.dumped_code),
-                    # 'S3Bucket': self.bucket,
-                    # 'S3Key': self.key,
-                    # 'S3ObjectVersion': 'string'
-                },
-                Description=self.description,
-                Timeout=123,
-                MemorySize=128,
-                Publish=True,
-
-        )
-
-        return response
-
-    def get(self):
-        return self.client.get_function(FunctionName=self.name)
-
-    def update(self):
-        package = DeploymentPackage(self)
-        return self.client.update_function_code(
-                FunctionName=self.name,
-                ZipFile=package.zip_bytes(self.dumped_code),
-                # S3Bucket='string',
-                # S3Key='string',
-                # S3ObjectVersion='string',
-                # Publish=True|False
-        )
-
-    def invoke(self, event, context, inv_type='RequestResponse', log_type='None', version=None):
-        params = dict(
-                FunctionName=self.name,
-                InvocationType=inv_type,
-                LogType=log_type,
-                # ClientContext='string',
-                Payload=json.dumps(event),
-        )
-        if version:
-            params['Qualifier'] = version
-
-        return self.client.invoke(**params)
