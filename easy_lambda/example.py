@@ -1,10 +1,11 @@
+import boto3
+
 from decorators import Lambda
 
-role = raw_input('Enter role ARN:')
+iam = boto3.client('iam')
+role = iam.get_role(RoleName='lambda_s3_exec_role')
 
-# @Lambda(name='echo', role='arn:aws:iam::461318818653:role/lambda_s3_exec_role')
 
-
-@Lambda(name='echo', role=role)
+@Lambda(name='echo', role=role['Role']['Arn'])
 def echo(event, context):
     return event

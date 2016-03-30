@@ -68,8 +68,8 @@ class LambdaProxy(object):
 
 
 class Lambda(object):
-    def __init__(self, name='', role='', client=None, description='', vps_config=None, package=None):
-        self.client = client or boto3.client('lambda', region_name='us-west-2')
+    def __init__(self, name='', role='', description='', vps_config=None, package=None):
+        self.client = boto3.client('lambda', region_name='us-west-2')
 
         self.name = name
         self.role = role
@@ -81,7 +81,9 @@ class Lambda(object):
 
     def __call__(self, functor):
         self.functor = functor
+
         self.dumped_code = dill.dumps(functor)
+        self.name = self.name or '{}.{}'.format(self.functor.__module__, self.functor.__name__)
 
         return functools.wraps(functor)(LambdaProxy(self, self.client))
 
