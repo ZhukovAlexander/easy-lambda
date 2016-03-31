@@ -1,6 +1,6 @@
 import boto3
 
-from decorators import Lambda
+from lambdify import Lambda
 
 iam = boto3.client('iam')
 role = iam.get_role(RoleName='lambda_s3_exec_role')
