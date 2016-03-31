@@ -100,11 +100,15 @@ CREATE_ONCE = 4  # create the function, if it doesn't exist
 
 
 class Lambda(object):
-    def __init__(self, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_ON_INIT):
+    def __init__(self, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_EXPLICIT):
         self.client = boto3.client('lambda', region_name='us-west-2')
 
         self.name = name
         self.role = role
+        if not role:
+            iam = boto3.client('iam')
+            role = iam.get_role(RoleName='lambda_s3_exec_role')
+            self.role = role['Role']['Arn']
         self.description = description
         self.vps_config = vps_config or {}
         self.package = package or DeploymentPackage(self)
