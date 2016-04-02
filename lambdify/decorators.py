@@ -100,7 +100,7 @@ CREATE_ONCE = 4  # create the function, if it doesn't exist
 
 
 class Lambda(object):
-    def __init__(self, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_EXPLICIT):
+    def __init__(self, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_ON_INIT):
         self.client = boto3.client('lambda', region_name='us-west-2')
 
         self.name = name
@@ -117,10 +117,13 @@ class Lambda(object):
         self.dumped_code = None
 
     def __call__(self, functor):
-        self.functor = functor
+        def adapter(event, context):
+            args = event.pop('args', [])
+            return functor(*args, **event)
+        self.functor = adapter
 
-        self.dumped_code = dill.dumps(functor)
-        self.name = self.name or '{}.{}'.format(self.functor.__module__, self.functor.__name__)
+        self.dumped_code = dill.dumps(adapter)
+        self.name = self.name or '{}.{}'.format(functor.__module__, functor.__name__)
 
         return functools.wraps(functor)(LambdaProxy(self, self.client))
 
