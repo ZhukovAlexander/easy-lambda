@@ -11,28 +11,10 @@ dill.settings['recurse'] = True
 
 
 class LambdaProxy(object):
-    _updated = False
-
-    def _create_or_update(self):
-        try:
-            self.get()
-            self.update()
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == 'ResourceNotFoundException':
-                self.create()
-            else:
-                raise
 
     def __init__(self, lambda_instance, client):
         self.client = client
         self.lambda_instance = lambda_instance
-
-        if self.lambda_instance.create_options & UPDATE_ON_INIT == UPDATE_ON_INIT:
-            self._create_or_update()
-
-    def __call__(self, *args, **kwargs):
-        kwargs.update({'args': args})
-        return json.loads(self.invoke(kwargs, None)['Payload'].read())
 
     def create(self):
         response = self.client.create_function(
@@ -52,7 +34,6 @@ class LambdaProxy(object):
                 Publish=True,
 
         )
-        self._updated = True
 
         return response
 
@@ -69,13 +50,9 @@ class LambdaProxy(object):
                 # Publish=True|False
         )
 
-        self._updated = True
-
         return response
 
     def invoke(self, event, context, inv_type='RequestResponse', log_type='None', version=None):
-        if not self._updated and self.lambda_instance.create_options & UPDATE_LAZY == UPDATE_LAZY:
-            self._create_or_update()
 
         params = dict(
                 FunctionName=self.lambda_instance.name,
@@ -100,35 +77,125 @@ CREATE_ONCE = 4  # create the function, if it doesn't exist
 
 
 class Lambda(object):
-    def __init__(self, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_ON_INIT):
+    """Wrapper class around a callable
+
+    This wrapper basically replaces the original function with it's AWS Lambda instance.
+    When called, the instance of this class will route the call to the AWS Instance, instead of
+    calling a local function.
+
+
+    """
+    _was_updated = False
+
+    def __init__(self, func, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_EXPLICIT):
+        """
+        Main Lambda constructor
+
+        :param func: function to make an AWS Lambda from. This will be the actual lambda handler
+        :param name:
+        :param role: AWS role ARN
+        :param description: function description
+        :param vps_config: vps configuration
+        :param package: deployment package for this function
+        :param flags: this flags allow you to control the point in time, when to make an actual call to aws to create
+        the function
+        """
         self.client = boto3.client('lambda', region_name='us-west-2')
 
-        self.name = name
+        self.name = name or '{}.{}'.format(func.__module__, func.__name__)
         self.role = role
         if not role:
             iam = boto3.client('iam')
             role = iam.get_role(RoleName='lambda_s3_exec_role')
             self.role = role['Role']['Arn']
+
         self.description = description
         self.vps_config = vps_config or {}
         self.package = package or DeploymentPackage(self)
         self.create_options = flags
 
-        self.dumped_code = None
-
-    def __call__(self, functor):
+        # here we need to adapt the signature of the function to the AWS Lambda signature
+        # according to https://docs.aws.amazon.com/lambda/latest/dg/python-programming-model-handler-types.html
+        # TODO: allow different adapters. This will require changes to the  __call__ method
+        @functools.wraps(func)
         def adapter(event, context):
             args = event.pop('args', [])
-            return functor(*args, **event)
+            return func(*args, **event)
+
         self.functor = adapter
 
-        self.dumped_code = dill.dumps(adapter)
-        self.name = self.name or '{}.{}'.format(functor.__module__, functor.__name__)
+        # serialize function early, otherwise dill could pick up global variable, not meant to be used
+        # by this function
+        self.dumped_code = dill.dumps(self.functor)
 
-        return functools.wraps(functor)(LambdaProxy(self, self.client))
+        self.proxy = LambdaProxy(self, self.client)
 
-    def serialize(self):
+        if self.create_options & UPDATE_ON_INIT == UPDATE_ON_INIT:
+            self._create_or_update()
+
+    @classmethod
+    def f(cls, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_EXPLICIT):
+        """
+        Alternative constructor factory to allow this class to be used as a decorator
+
+
+        :param name: lambda function name
+        :param role: role ARN
+        :param description: function description
+        :param vps_config: vps configuration
+        :param package: deployment package for this function
+        :param flags: this flags allow you to control the point in time, when to make an actual call to aws to create
+        the function
+        :return: function decorator
+        """
+
+        def initialize(func):
+            return cls(func,
+                       name=name,
+                       role=role,
+                       description=description,
+                       vps_config=vps_config,
+                       package=package,
+                       flags=flags)
+        return initialize
+
+    def __call__(self, *args, **kwargs):
+        kwargs.update({'args': args})
+        return json.loads(self.proxy.invoke(kwargs, None)['Payload'].read())
+
+    def _create_or_update(self):
+        try:
+            self.get()
+            self.update()
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == 'ResourceNotFoundException':
+                self.create()
+            else:
+                raise
+
+        self._was_updated = True
+
+    def create(self):
+        """Create lambda function in AWS"""
+        return self.proxy.create()
+
+    def get(self):
+        """Get the lambda instance details from AWS"""
+        return self.proxy.get()
+
+    def update(self):
+        """Update the lambda instance"""
+        return self.proxy.update()
+
+    def invoke(self, event, context):
+        """Invoke the lambda function.
+        """
+        if not self._was_updated and self.create_options & UPDATE_LAZY == UPDATE_LAZY:
+            self._create_or_update()
+        return self.proxy.invoke(event, context)
+
+    def _serialize(self):
         return dill.dumps(self.functor)
 
-    def serialize_to(self, f):
+    def _serialize_to(self, f):
         return dill.dump(self.functor, f)

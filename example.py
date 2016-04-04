@@ -1,6 +1,6 @@
-from lambdify import Lambda
+from lambdify import Lambda, UPDATE_EXPLICIT
 
 
-@Lambda(name='echo')
+@Lambda.f(name='echo')
 def echo(*args, **kwargs):
     return args, kwargs
