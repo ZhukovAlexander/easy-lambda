@@ -1,0 +1,6 @@
+{
+  "name": "Lambdify",
+  "tagline": "Programmable AWS Lambda for Python",
+  "body": "# λambdify - feel yourserlf like an AWS Lambda God\r\n\r\n**lambdify** allows you to create AWS Lambda function directly from the python code.\r\nJust like that:\r\n\r\ninstall *lambdify*...\r\n```bash\r\n$pip install lambdify\r\n```\r\n...create AWS Lambda with 4 lines of code:\r\n```python\r\nfrom lambdify import Lambda\r\n\r\n\r\n@Lambda.f(name='echo')\r\ndef echo(*args, **kwargs):\r\n    return args, kwargs\r\n\r\n\r\nif __name__ == '__main__':\r\n    import getpass\r\n    echo(msg='Hello, {user}!'.format(user=getpass.getuser()))\r\n```\r\n\r\nNow you can head over to your [AWS Lambda console](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/echo) and behold your **echo** function\r\n\r\n* No more bothering packaging your env\r\n* [Celery](http://docs.celeryproject.org/en/latest/userguide/tasks.html#basics)-like function definition\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
