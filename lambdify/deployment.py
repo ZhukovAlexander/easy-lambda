@@ -54,7 +54,7 @@ class DeploymentPackage(object):
 
         return zipfile.ZipFile(self.env_cache, 'a', zipfile.ZIP_DEFLATED)
 
-    def zip_bytes(self, lambda_code):
+    def to_bytes(self, lambda_code):
         archive = self.get_zipped_env()
 
         # add serialized lambda function
@@ -65,4 +65,3 @@ class DeploymentPackage(object):
         archive.writestr(info, lambda_code)
         archive.close()
         return open(self.env_cache).read()
-
