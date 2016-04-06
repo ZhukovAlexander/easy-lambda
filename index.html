@@ -1,34 +1,25 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta charset="UTF-8">
     <title>Lambdify by ZhukovAlexander</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/github-light.css">
-    <meta name="viewport" content="width=device-width">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
   </head>
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>Lambdify</h1>
-        <p>Programmable AWS Lambda for Python</p>
+    <section class="page-header">
+      <h1 class="project-name">Lambdify</h1>
+      <h2 class="project-tagline">Programmable AWS Lambda for Python</h2>
+      <a href="https://github.com/ZhukovAlexander/lambdify" class="btn">View on GitHub</a>
+      <a href="https://github.com/ZhukovAlexander/lambdify/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/ZhukovAlexander/lambdify/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
 
-        <p class="view"><a href="https://github.com/ZhukovAlexander/lambdify">View the Project on GitHub <small>ZhukovAlexander/lambdify</small></a></p>
-
-
-        <ul>
-          <li><a href="https://github.com/ZhukovAlexander/lambdify/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/ZhukovAlexander/lambdify/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/ZhukovAlexander/lambdify">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <h1>
+    <section class="main-content">
+      <h1>
 <a id="λambdify---feel-yourserlf-like-an-aws-lambda-god" class="anchor" href="#%CE%BBambdify---feel-yourserlf-like-an-aws-lambda-god" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>λambdify - feel yourserlf like an AWS Lambda God</h1>
 
 <p><strong>lambdify</strong> allows you to create AWS Lambda function directly from the python code.
@@ -54,22 +45,36 @@ Just like that:</p>
 
 <p>Now you can head over to your <a href="https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/echo">AWS Lambda console</a> and behold your <strong>echo</strong> function</p>
 
+<h1>
+<a id="the-goal" class="anchor" href="#the-goal" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The goal</h1>
+
 <p>Lambdify aims to unite convenient task queues API (i.e. <a href="http://www.celeryproject.org/">Celery</a>, <a href="http://huey.readthedocs.org/en/latest/#huey-s-api">Hue</a>, <a href="http://python-rq.org/docs/">RQ's @job decorator</a>) with AWS Lambda service advantages.</p>
 
-<p>At present, there are some solutions, that allow you to create and deploy lambdas, like <a href="https://github.com/Miserlou/Zappa">Zappa</a>, but they still have limitations of not being able to interact directly with the python program. </p>
+<p>At present, there are some solutions, that allow you to create and deploy lambdas, like <a href="https://github.com/Miserlou/Zappa">Zappa</a>, <a href="https://github.com/rackerlabs/lambda-uploader">lambda-uploader</a>, <a href="https://github.com/LeafSoftware/python-lambder">lambder</a> etc., but they still have limitations of not being able to interact directly with a python program. 
+lambdify overcomes such limitations by using the following algorithm:
+1. Serialize the callable with it's globals using <a href="https://github.com/uqfoundation/dill">dill</a></p>
+
+<ol>
+<li><p>Upload the .lambda.dump file containing the serialized function along with the rest of the package</p></li>
+<li><p>Special <code>container.py</code> module will look for the .lambda.dump file and inject deserialized function into it's namespace</p></li>
+<li><p>????</p></li>
+<li><p>Profit</p></li>
+</ol>
 
 <ul>
 <li>No more bothering packaging your env</li>
 <li>
 <a href="http://docs.celeryproject.org/en/latest/userguide/tasks.html#basics">Celery</a>-like function definition</li>
 </ul>
-      </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/ZhukovAlexander">ZhukovAlexander</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/ZhukovAlexander/lambdify">Lambdify</a> is maintained by <a href="https://github.com/ZhukovAlexander">ZhukovAlexander</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
-    </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
+
+    </section>
+
+  
   </body>
 </html>
