@@ -11,4 +11,14 @@ setup(name='lambdify',
       install_requires=install_requires,
       author='Alexander Zhukov',
       author_email='zhukovaa90@gmail.com',
-      cmdclass=versioneer.get_cmdclass(), )
+      url='https://github.com/ZhukovAlexander/lambdify',
+      cmdclass=versioneer.get_cmdclass(),
+      classifiers=['Development Status :: 3 - Alpha',
+                   'Intended Audience :: Developers',
+                   'License :: OSI Approved :: Apache Software License',
+                   'Operating System :: OS Independent',
+                   'Programming Language :: Python :: 2.7',
+                   'Topic :: Software Development :: Libraries :: Python Modules',
+                   'Topic :: System :: Distributed Computing',
+                   'Topic :: Utilities']
+      )
