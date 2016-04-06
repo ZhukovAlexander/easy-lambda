@@ -51,21 +51,17 @@ Just like that:</p>
 <p>Lambdify aims to unite convenient task queues API (i.e. <a href="http://www.celeryproject.org/">Celery</a>, <a href="http://huey.readthedocs.org/en/latest/#huey-s-api">Hue</a>, <a href="http://python-rq.org/docs/">RQ's @job decorator</a>) with AWS Lambda service advantages.</p>
 
 <p>At present, there are some solutions, that allow you to create and deploy lambdas, like <a href="https://github.com/Miserlou/Zappa">Zappa</a>, <a href="https://github.com/rackerlabs/lambda-uploader">lambda-uploader</a>, <a href="https://github.com/LeafSoftware/python-lambder">lambder</a> etc., but they still have limitations of not being able to interact directly with a python program. 
-lambdify overcomes such limitations by using the following algorithm:
-1. Serialize the callable with it's globals using <a href="https://github.com/uqfoundation/dill">dill</a></p>
+lambdify overcomes such limitations by using the following algorithm:</p>
 
 <ol>
+<li><p>Serialize the callable with it's globals using <a href="https://github.com/uqfoundation/dill">dill</a></p></li>
 <li><p>Upload the .lambda.dump file containing the serialized function along with the rest of the package</p></li>
 <li><p>Special <code>container.py</code> module will look for the .lambda.dump file and inject deserialized function into it's namespace</p></li>
 <li><p>????</p></li>
 <li><p>Profit</p></li>
 </ol>
 
-<ul>
-<li>No more bothering packaging your env</li>
-<li>
-<a href="http://docs.celeryproject.org/en/latest/userguide/tasks.html#basics">Celery</a>-like function definition</li>
-</ul>
+<p>P.S. Lambdify is a POC, and at the time allows your lambda to only use site-packages, all local files won't be packaged, so each user-defined dependency should be contained withing the same file.</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/ZhukovAlexander/lambdify">Lambdify</a> is maintained by <a href="https://github.com/ZhukovAlexander">ZhukovAlexander</a>.</span>
