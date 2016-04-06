@@ -11,7 +11,6 @@ dill.settings['recurse'] = True
 
 
 class LambdaProxy(object):
-
     def __init__(self, lambda_instance, client):
         self.client = client
         self.lambda_instance = lambda_instance
@@ -53,7 +52,6 @@ class LambdaProxy(object):
         return response
 
     def invoke(self, event, context, inv_type='RequestResponse', log_type='None', version=None):
-
         params = dict(
                 FunctionName=self.lambda_instance.name,
                 InvocationType=inv_type,
@@ -82,6 +80,7 @@ class Lambda(object):
     This wrapper basically replaces the original function with it's AWS Lambda instance.
     When called, the instance of this class will route the call to the AWS Instance, instead of
     calling a local function.
+    
 
 
     """
@@ -90,6 +89,16 @@ class Lambda(object):
     def __init__(self, func, name='', role='', description='', vps_config=None, package=None, flags=UPDATE_EXPLICIT):
         """
         Main Lambda constructor
+
+        >>>from lambdify import Lambda
+        >>>
+        >>>def echo(event):
+        ...    return event
+        >>>
+        >>>echo = Lambda(echo, name='echo')
+        >>>echo.create()
+
+
 
         :param func: function to make an AWS Lambda from. This will be the actual lambda handler
         :param name:
@@ -138,6 +147,13 @@ class Lambda(object):
         """
         Alternative constructor factory to allow this class to be used as a decorator
 
+        >>>from lambdify import Lambda
+        >>>@Lambda.f(name='echo')
+        ...def echo(event):
+        ...    return event
+        ...
+        >>>echo.create()
+
 
         :param name: lambda function name
         :param role: role ARN
@@ -157,9 +173,15 @@ class Lambda(object):
                        vps_config=vps_config,
                        package=package,
                        flags=flags)
+
         return initialize
 
     def __call__(self, *args, **kwargs):
+        """Proxies calls to the wrapped callable instance to the actual cloud lambda.
+        Note the signature of this method allows you to call it as a casual python function.
+        Arguments will be automatically adapted to the (event, context) pair of argument, as required for
+        lambda handler.
+        """
         kwargs.update({'args': args})
         return json.loads(self.proxy.invoke(kwargs, None)['Payload'].read())
 
