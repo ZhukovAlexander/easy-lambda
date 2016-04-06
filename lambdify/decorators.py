@@ -23,7 +23,7 @@ class LambdaProxy(object):
                 Role=self.lambda_instance.role,
                 Handler='container.lambda_handler',
                 Code={
-                    'ZipFile': self.lambda_instance.package.zip_bytes(self.lambda_instance.dumped_code),
+                    'ZipFile': self.lambda_instance.package.to_bytes(self.lambda_instance.dumped_code),
                     # 'S3Bucket': self.bucket,
                     # 'S3Key': self.key,
                     # 'S3ObjectVersion': 'string'
