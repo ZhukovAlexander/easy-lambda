@@ -9,13 +9,14 @@ $pip install lambdify
 ```
 ...create AWS Lambda with 4 lines of code:
 ```python
-from lambdify import Lambda, UPDATE_LAZY
+from lambdify import Lambda
 
 
-@Lambda.f(name='echo', flags=UPDATE_LAZY)
+@Lambda.f(name='echo')
 def echo(*args, **kwargs):
     return args, kwargs
 
+echo.create()
 
 if __name__ == '__main__':
     import getpass
