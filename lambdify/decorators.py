@@ -182,9 +182,12 @@ class Lambda(object):
 
         return response
 
-    def get(self):
-        """Get the lambda instance details from AWS"""
-        return self.client.get_function(FunctionName=self.name)
+    def get(self, version=None):
+        """Get the lambda instance details from AWS
+        
+        :param version: function version to get
+        """
+        return self.client.get_function(FunctionName=self.name, Qualifier=version or self.version)
 
     def update(self):
         """Update the lambda instance"""
@@ -220,3 +223,8 @@ class Lambda(object):
             params['Qualifier'] = version
 
         return self.client.invoke(**params)
+
+    @property
+    def versions(self):
+        """List all versions for this Lambda"""
+        return self.client.list_versions_by_function(FunctionName=self.name)['Versions']
