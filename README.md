@@ -1,4 +1,4 @@
-# λambdify - feel yourserlf like an AWS Lambda God
+# λambdify - feel yourself like an AWS Lambda God
 [![PyPI version](https://badge.fury.io/py/lambdify.svg)](https://badge.fury.io/py/lambdify)
 
 **lambdify** is a tool that turns any python callable into an AWS Lambda function. Create, update and call your lambdas **directly from python**. 
