@@ -1,7 +1,8 @@
 # λambdify - feel yourserlf like an AWS Lambda God
 [![PyPI version](https://badge.fury.io/py/lambdify.svg)](https://badge.fury.io/py/lambdify)
 
-**lambdify** allows you to create AWS Lambda function directly from the python code.
+**lambdify** is a tool that turns any python callable into an AWS Lambda function. Create, update and call your lambdas **directly from python**. 
+
 Just like that:
 
 install *lambdify*...
@@ -24,7 +25,8 @@ if __name__ == '__main__':
     echo(msg='Hello, {user}!'.format(user=getpass.getuser()))
 ```
 
-Now you can head over to your [AWS Lambda console](https://console.aws.amazon.com/lambda/) and behold your **echo** function
+Now you can head over to your [AWS Lambda console](https://console.aws.amazon.com/lambda/) and behold your **echo** function.
+Could creating a serverless program be any easier?
 
 # The goal
 Lambdify aims to unite convenient task queues API (i.e. [Celery](http://www.celeryproject.org/), [Hue](http://huey.readthedocs.org/en/latest/#huey-s-api), [RQ's @job decorator](http://python-rq.org/docs/)) with AWS Lambda service coolest features. Ultimately, **lambdify** should be capable to become a good alternative to Celery or any other task queue.
@@ -52,7 +54,7 @@ lambdify overcomes such limitations by using the following algorithm:
 
 * ***Workerless task queue replacement***
 ```python
-@Lambda.f(name='my_jog')
+@Lambda.f(name='my_job')
 def add(a, b):
     return a + b
 ```
@@ -67,9 +69,11 @@ def child_function(x, y):
     
 @Lambda.f(name='parent')
 def parent_function(y):
-    # this will actually call the cloude instance of
+    # this will actually call the cloud instance of
     # child_function
     return child_function(2, y)
+
+parent_function(42)
 ```
 * ***Dynamic and realtime lambda-function management***
 * ***Multiple lambda-functions management***
