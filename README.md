@@ -48,16 +48,16 @@ lambdify overcomes such limitations by using the following algorithm:
 >>>help(Lambda)
 ```
 
-#Usecases and reatures
+#Usecases and features
 
-* Workerless task queue replacement
+* ***Workerless task queue replacement***
 ```python
 @Lambda.f(name='my_jog')
 def add(a, b):
     return a + b
 ```
 
-* Distributed computing
+* ***Distributed computing***
 
 *Lambdas can create and call other lambdas:*
 ```python
@@ -71,8 +71,8 @@ def parent_function(y):
     # child_function
     return child_function(2, y)
 ```
-* Dynamic and realtime lambda-function management
-* Multiple lambda-functions management
+* ***Dynamic and realtime lambda-function management***
+* ***Multiple lambda-functions management***
 
 
 ***P.S. Lambdify is a POC, and at the time allows your lambda to only use site-packages, all local files won't be packaged, so each user-defined dependency should be contained withing the same file.***
