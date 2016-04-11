@@ -53,15 +53,18 @@ lambdify overcomes such limitations by using the following algorithm:
 #Usecases and features
 
 * ***Workerless task queue replacement***
+
+The simpliest task queue ever
 ```python
 @Lambda.f(name='my_job')
 def add(a, b):
     return a + b
 ```
 
+
 * ***Distributed computing***
 
-*Lambdas can create and call other lambdas:*
+Lambdas can create and call other lambdas:
 ```python
 @Lambda.f(name='child')
 def child_function(x, y):
@@ -86,3 +89,5 @@ parent_function(42)
 ```python
 contributions != lambdify.WELCOME and contributions == lambdify.NECESSARY
 ```
+
+Keywords: python, aws, lambda, task queue, distributed computing
