@@ -78,6 +78,7 @@ def parent_function(y):
 
 parent_function(42)
 ```
+* ***Cloud Functional Reactive Programming***
 * ***Dynamic and realtime lambda-function management***
 * ***Multiple lambda-functions management***
 
