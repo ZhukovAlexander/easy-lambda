@@ -1,4 +1,4 @@
-# λambdify - feel yourself like an AWS Lambda God
+# λambdify - because code is the only thing that matters
 [![PyPI version](https://badge.fury.io/py/lambdify.svg)](https://badge.fury.io/py/lambdify)
 
 **lambdify** is a tool that turns any python callable into an AWS Lambda function. Create, update and call your lambdas **directly from python**. 
@@ -85,10 +85,5 @@ parent_function(42)
 
 ***P.S. Lambdify is a POC, and at the time allows your lambda to only use site-packages, all local files won't be packaged, so each user-defined dependency should be contained withing the same file.***
 
-***P.P.S***
-
-```python
-contributions != lambdify.WELCOME and contributions == lambdify.NECESSARY
-```
 
 Keywords: python, aws, lambda, task queue, distributed computing
