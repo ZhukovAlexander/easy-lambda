@@ -1,7 +1,7 @@
 # λambdify - because code is the only thing that matters
 [![PyPI version](https://badge.fury.io/py/lambdify.svg)](https://badge.fury.io/py/lambdify)
 
-**lambdify** is a tool that turns any python callable into an AWS Lambda function. Create, update and call your lambdas **directly from python**. 
+**lambdify** is a tool that turns any python callable into an AWS Lambda function. Create, update and call your lambdas directly from python. 
 
 Just like that:
 
@@ -29,6 +29,8 @@ Now you can head over to your [AWS Lambda console](https://console.aws.amazon.co
 Could creating a serverless program be any easier?
 
 # The goal
+Lambdify is an attempt to implement a **SFRP** (Serverless Functional Reactive Programming) on the highest level of abstraction, meaning, that a user will only deal with a pythonic API to SFRP.
+
 Lambdify aims to unite convenient task queues API (i.e. [Celery](http://www.celeryproject.org/), [Hue](http://huey.readthedocs.org/en/latest/#huey-s-api), [RQ's @job decorator](http://python-rq.org/docs/)) with AWS Lambda service coolest features. Ultimately, **lambdify** should be capable to become a good alternative to Celery or any other task queue.
 
 At present, there are some solutions, that allow you to create and deploy lambdas, like [Zappa](https://github.com/Miserlou/Zappa), [lambda-uploader](https://github.com/rackerlabs/lambda-uploader), [lambder](https://github.com/LeafSoftware/python-lambder) etc., but they still have limitations of not being able to interact directly with a python program. 
