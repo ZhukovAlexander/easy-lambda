@@ -6,7 +6,7 @@ import boto3
 import botocore
 import dill
 
-from deployment import DeploymentPackage
+from .deployment import DeploymentPackage
 
 dill.settings['recurse'] = True
 

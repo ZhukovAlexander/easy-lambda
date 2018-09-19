@@ -61,7 +61,7 @@ class DeploymentPackage(object):
         # make sure to add correct permissions
         # <http://stackoverflow.com/a/434689/2183102>
         info = zipfile.ZipInfo('.lambda.dump')
-        info.external_attr = 0777 << 16L  # give full access to included file
+        info.external_attr = 0o777 << 16  # give full access to included file
         archive.writestr(info, lambda_code)
         archive.close()
         return open(self.env_cache).read()
