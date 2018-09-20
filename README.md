@@ -1,4 +1,5 @@
 # λambdify - because code is the only thing that matters
+[![Build Status](https://travis-ci.org/ZhukovAlexander/lambdify.svg?branch=master)](https://travis-ci.org/ZhukovAlexander/lambdify)
 [![PyPI version](https://badge.fury.io/py/lambdify.svg)](https://badge.fury.io/py/lambdify)
 
 ### ***DISCLAIMER: lambdify is just a POC, it's not actively maintained and is not suitable for production use at the moment***
