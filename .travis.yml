@@ -1,0 +1,12 @@
+sudo: false
+language: python
+python:
+- '3.6'
+deploy:
+  provider: pypi
+  user: dijkstra
+  password:
+    secure: br8mW7XiomgRfcxJUSXd59MqY02ub6Q2nFncUP5wzpAqaM0gwmeIILvC9vfnx0pngyaZVvEIvFbag66Y0est7Rep0HEHTQ2UbOxwfniI2OaNWO7PO4MNnU03FW4HBXGEv/Vo8vaSNKNr6R1rOLI+DE4PaEVFZUA0FOao52ZmOARKOG+is6FkSysVBHgqfm/gCA6k/X9LfKi+25RNHt56q6fhT2dlapdUg/UP9nBzUjRvHb/WdGtFMSD6iNRrVCaN5JWMT3zfEOdhNoWgu40xlotRzDt+1v4jMLPDHUHRVIxfw+CaHqFev1tM8/eUzrcbZqIz6w/gpFXWtrIXU3edmFxprt3Bh36ij1j0XuCTfjPsEomBSjxOX2rwvKA9HY/hMopUcFqbndXWFP5Y/XgkWe6q0hZWzIpTK89xRFUGrMi4cKN9+vnO1o6hv1zlMghXGH/9izr8UW+sLpXgw5v1mwgNt8VhaDAv7FwFvpoZiG9XeNXrkQKPQZ/qMm3jwO+ux0AxO9EamYUnfvKKsvYSQUDOWjvKor29IuINpIe2YzTIkbyadHM9LQkwoe22leP1E4SF07o7ncuMXAh9dOfc1IjXSEIcSXMKr6gXFaMiaaMpo9W7y4FWdXfCS9T4pDlvJVssc1XXVGAF/mtEEhOQaLywm80WHSPVu/Aj1SJzke4=
+  on:
+    tags: true
+    branch: master
